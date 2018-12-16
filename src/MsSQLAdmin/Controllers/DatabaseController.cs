@@ -75,5 +75,55 @@ namespace MsSQLAdmin.Controllers {
             this.ServiceConnection.SetServeur(serveur);
             return View();
         }
-    }
+
+		[HttpGet("Server/{serveur}/Create")]
+		public IActionResult Create()
+		{			
+			return View();
+		}
+
+		[HttpPost("Server/{serveur}/Create")]
+		public async Task<IActionResult> Create(DatabaseModel model)
+		{
+			var connection = this.ServiceConnection.GetDatabaseConnection();
+
+			this.ServiceConnection.SetDatabase("master");
+
+			string sql = string.Format("CREATE DATABASE {0}", model.Name);
+
+			var k  = await this.ServiceDatabase.GetDataAsync(connection.ConnectionString, sql);
+			
+			return PartialView("_Create", k.DDLResult.ToString());
+		}
+
+		[HttpGet("Server/{serveur}/CreateTable")]
+		public IActionResult CreateTable()
+		{
+			return View();
+		}
+
+		[HttpPost("Server/{serveur}/CreateTable")]
+		public async Task<IActionResult> CreateTable(TableModel model)
+		{
+			if (model != null && model.TableColumns.GetEnumerator().Current != null)
+			{
+				string sql = string.Format("CREATE TABLE {0} (", model.Name);
+
+				foreach (var item in model.TableColumns)
+				{
+					sql += string.Format("{0} {1} ({2}),", item.Name, item.Type, item.Precision);
+				}
+				sql = sql.Substring(0, sql.Length - 2);
+				sql += ")";
+
+				var connection = this.ServiceConnection.GetDatabaseConnection();
+
+				var k = await this.ServiceDatabase.GetDataAsync(connection.ConnectionString, sql);
+
+				return PartialView("_CreateTable", new { msg = "Creation success." });
+			}
+			return PartialView("_CreateTable", new { msg = "Creation failed." });
+		}
+
+	}
 }
