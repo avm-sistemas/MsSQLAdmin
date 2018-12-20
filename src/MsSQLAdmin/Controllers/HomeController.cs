@@ -20,6 +20,9 @@ namespace MsSQLAdmin.Controllers {
 
         public IActionResult Index() {
             this.ServiceConnection.SetDatabaseConnection(null);
+
+            ViewBag.HistoryConnections = new LocalDatabaseService().GetConnections();
+
             return View();
         }
 
